@@ -1,0 +1,41 @@
+FROM golang:1.12
+
+# workaround for glide fetch Gitlab private repo
+#RUN mkdir /root/.ssh
+#COPY ./ssh/id_rsa /root/.ssh
+#COPY ./ssh/known_hosts /root/.ssh
+#RUN chmod 700 /root/.ssh/id_rsa
+#RUN git config --global url."git@gitlab.com:nchc-ai/".insteadOf "https://gitlab.com/nchc-ai/"
+
+
+RUN mkdir /k8s-device-plugin
+WORKDIR /k8s-device-plugin
+
+# Using go mod download to speed up Golang Docker builds
+# https://medium.com/@petomalina/using-go-mod-download-to-speed-up-golang-docker-builds-707591336888?fbclid=IwAR0Jzs5PqepVJTHsshx5sKDftoCbM3IdlW-RD8_hcH6Nlets3lm3Y0LiX3U
+
+# COPY go.mod and go.sum files to the workspace
+COPY go.mod .
+COPY go.sum .
+
+# Get dependancies - will also be cached if we won't change mod/sum
+#RUN go mod download
+
+COPY . .
+RUN if [ ! -d "/k8s-device-plugin/vendor" ]; then  go mod vendor; fi
+#RUN go mod vendor
+RUN make build-in-docker
+
+
+
+FROM debian:stretch-slim
+
+ENV NVIDIA_VISIBLE_DEVICES=all
+ENV NVIDIA_DRIVER_CAPABILITIES=utility
+
+COPY --from=0 /k8s-device-plugin/bin/k8s-device-plugin /usr/bin/nvidia-device-plugin
+
+CMD ["nvidia-device-plugin"]
+
+
+
