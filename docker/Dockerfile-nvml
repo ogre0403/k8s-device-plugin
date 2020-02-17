@@ -24,7 +24,7 @@ COPY go.sum .
 COPY . .
 RUN if [ ! -d "/k8s-device-plugin/vendor" ]; then  go mod vendor; fi
 #RUN go mod vendor
-RUN make build-in-docker
+RUN make build-in-docker-nvml
 
 
 

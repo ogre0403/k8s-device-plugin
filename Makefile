@@ -26,16 +26,21 @@ run-in-docker:
 	docker run -ti --rm  ${DOCKER_REPO}/${PROJ_NAME}:$(TAG)
 
 
-build-img:
-	docker build -t ${DOCKER_REPO}/${PROJ_NAME}:$(RELEASE_TAG) -f docker/Dockerfile .
+build-nvml-img:
+	docker build -t ${DOCKER_REPO}/${PROJ_NAME}:$(RELEASE_TAG)-nvml -f docker/Dockerfile-nvml .
 
 
-build-in-docker:
+build-cuda-img:
+	docker build -t ${DOCKER_REPO}/${PROJ_NAME}:$(RELEASE_TAG)-cuda -f docker/Dockerfile-cuda .
+
+build-in-docker-nvml:
 	rm -rf bin/*
 	go build -mod=vendor -o bin/${PROJ_NAME}
-#	CGO_ENABLED=0 GOOS=linux go build
-#	-a -installsuffix cgo -o bin/${PROJ_NAME}
 
+
+build-in-docker-cuda:
+	rm -rf bin/*
+	go build -mod=vendor -o bin/${PROJ_NAME} cmd/cuda/*.go
 
 clean:
 	rm -rf bin/*
