@@ -40,7 +40,7 @@ build-in-docker-nvml:
 
 build-in-docker-cuda:
 	rm -rf bin/*
-	go build -mod=vendor -o bin/${PROJ_NAME} cmd/cuda/*.go
+	go build -o bin/${PROJ_NAME} cmd/cuda/*.go
 
 clean:
 	rm -rf bin/*

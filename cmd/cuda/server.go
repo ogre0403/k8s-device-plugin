@@ -17,10 +17,8 @@ import (
 )
 
 const (
-	resourceName           = "nvidia.com/gpu"
-	serverSock             = pluginapi.DevicePluginPath + "nvidia.sock"
-	envDisableHealthChecks = "DP_DISABLE_HEALTHCHECKS"
-	allHealthChecks        = "xids"
+	resourceName = "nvidia.com/gpu"
+	serverSock   = pluginapi.DevicePluginPath + "nvidia.sock"
 )
 
 // NvidiaDevicePlugin implements the Kubernetes device plugin API
@@ -89,7 +87,7 @@ func (m *NvidiaDevicePlugin) Start() error {
 	}
 	conn.Close()
 
-	go m.healthcheck()
+	//go m.healthcheck()
 
 	return nil
 }
@@ -182,31 +180,6 @@ func (m *NvidiaDevicePlugin) cleanup() error {
 	}
 
 	return nil
-}
-
-func (m *NvidiaDevicePlugin) healthcheck() {
-	disableHealthChecks := strings.ToLower(os.Getenv(envDisableHealthChecks))
-	if disableHealthChecks == "all" {
-		disableHealthChecks = allHealthChecks
-	}
-
-	ctx, cancel := context.WithCancel(context.Background())
-
-	var xids chan *pluginapi.Device
-	if !strings.Contains(disableHealthChecks, "xids") {
-		xids = make(chan *pluginapi.Device)
-		go watchXIDs(ctx, m.devs, xids)
-	}
-
-	for {
-		select {
-		case <-m.stop:
-			cancel()
-			return
-		case dev := <-xids:
-			m.unhealthy(dev)
-		}
-	}
 }
 
 // Serve starts the gRPC server and register the device plugin to Kubelet
